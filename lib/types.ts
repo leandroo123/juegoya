@@ -17,6 +17,8 @@ export interface Database {
           whatsapp: string | null
           zone: string | null
           level: number | null
+          sports: string[] | null
+          padel_level: number | null
           created_at: string
           updated_at: string
         }
@@ -27,6 +29,8 @@ export interface Database {
           whatsapp?: string | null
           zone?: string | null
           level?: number | null
+          sports?: string[] | null
+          padel_level?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -37,10 +41,13 @@ export interface Database {
           whatsapp?: string | null
           zone?: string | null
           level?: number | null
+          sports?: string[] | null
+          padel_level?: number | null
           created_at?: string
           updated_at?: string
         }
       }
+
       matches: {
         Row: {
           id: string
@@ -82,6 +89,7 @@ export interface Database {
           updated_at?: string
         }
       }
+
       match_players: {
         Row: {
           match_id: string
@@ -109,6 +117,7 @@ export interface Database {
         }
       }
     }
+
     Functions: {
       join_match: {
         Args: {
@@ -130,6 +139,15 @@ export interface Database {
         Returns: void
       }
     }
+    Views: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
@@ -146,3 +164,4 @@ export type MatchWithPlayers = Match & {
   organizer: Profile
   players: (MatchPlayer & { profile: Profile })[]
 }
+

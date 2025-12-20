@@ -34,3 +34,15 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Configuración de Producción (Vercel)
+
+Para que el login mágico funcione correctamente en Vercel, configurar Supabase > Validations > URL Configuration:
+
+1. **Site URL**: `https://juegoya.vercel.app` (o tu dominio de producción)
+2. **Redirect URLs**: Agregar `https://juegoya.vercel.app/**`
+
+Las variables de entorno en Vercel deben ser:
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Tu URL de proyecto Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Tu clave pública (ANON) de Supabase

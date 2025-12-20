@@ -47,11 +47,7 @@ export default function NewMatchPage() {
         return
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('zone')
-        .eq('id', user.id)
-        .single()
+      const { data: profile } = await supabase.from('profiles').select('zone').eq('id', user.id).single()
 
       if (profile && (profile as any).zone) {
         setFormData((prev) => ({ ...prev, zone: (profile as any).zone }))
@@ -65,10 +61,10 @@ export default function NewMatchPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Prevent double submit
     if (saving) return
-    
+
     setSaving(true)
     setMessage(null)
 
@@ -93,7 +89,7 @@ export default function NewMatchPage() {
       }
 
       // Create match with explicit ID selection
-      const { data: match, error } = await supabase
+      const { data, error } = await supabase
         .from('matches')
         .insert({
           organizer_id: user.id,
@@ -119,16 +115,20 @@ export default function NewMatchPage() {
         return
       }
 
-      // Defensive validation: ensure ID exists before redirect
-      if (!match || !match.id) {
-        console.error('Match created but no ID returned:', match)
-        setMessage({ type: 'error', text: 'No se pudo crear el partido. Intentá de nuevo.' })
+      // ✅ Defensive + Tipado explícito para evitar "never"
+      // Utilizamos un cast seguro para asegurar que TS sepa que data tiene la forma correcta
+      const matchData = data as { id: string } | null
+      const matchId = matchData?.id
+
+      if (!matchId) {
+        console.error('Match created but no ID returned:', data)
+        setMessage({ type: 'error', text: 'No se pudo crear el partido (sin ID). Intentá de nuevo.' })
         setSaving(false)
         return
       }
 
       // Redirect to match detail with validated ID
-      router.push(`/matches/${match.id}`)
+      router.push(`/matches/${matchId}`)
     } catch (err) {
       console.error('Error creating match:', err)
       setMessage({ type: 'error', text: 'Error de conexión. Verificá tu internet e intentá de nuevo.' })

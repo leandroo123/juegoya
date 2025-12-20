@@ -18,7 +18,8 @@ export interface Database {
           zone: string | null
           level: number | null
           sports: string[] | null
-          padel_level: number | null
+          padel_category: string | null
+          tennis_level: number | null
           created_at: string
           updated_at: string
         }
@@ -30,7 +31,8 @@ export interface Database {
           zone?: string | null
           level?: number | null
           sports?: string[] | null
-          padel_level?: number | null
+          padel_category?: string | null
+          tennis_level?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -42,7 +44,8 @@ export interface Database {
           zone?: string | null
           level?: number | null
           sports?: string[] | null
-          padel_level?: number | null
+          padel_category?: string | null
+          tennis_level?: number | null
           created_at?: string
           updated_at?: string
         }

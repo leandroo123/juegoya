@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
   const isMatchDetailRoute = /^\/matches\/[^\/]+$/.test(request.nextUrl.pathname)
 
   // Protected routes (require auth)
-  const protectedRoutes = ['/profile', '/matches/new', '/home']
+  const protectedRoutes = ['/profile', '/matches/new', '/home', '/players']
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )

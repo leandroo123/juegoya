@@ -223,12 +223,13 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
                   {activePlayers.map((player: any, index: number) => (
                     <li key={player.user_id} className="flex items-center gap-3 text-gray-700">
                       <span className="font-medium">{index + 1}.</span>
-                      <span>
+                      <a href={`/players/${player.user_id}`} className="hover:text-blue-600 hover:underline">
                         {player.profile?.first_name} {player.profile?.last_name}
-                      </span>
+                      </a>
                       {player.confirmed_at && (
                         <span className="text-green-600 text-sm">✓ Confirmado</span>
                       )}
+                      
                     </li>
                   ))}
                 </ul>
@@ -247,9 +248,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
                   {substitutes.map((player: any, index: number) => (
                     <li key={player.user_id} className="flex items-center gap-3 text-gray-600">
                       <span className="font-medium">{index + 1}.</span>
-                      <span>
+                      <a href={`/players/${player.user_id}`} className="hover:text-blue-600 hover:underline">
                         {player.profile?.first_name} {player.profile?.last_name}
-                      </span>
+                      </a>
                     </li>
                   ))}
                 </ul>

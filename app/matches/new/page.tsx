@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/browser'
 import { createMatchSchema } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 
-const SPORTS = ['Fútbol 5', 'Fútbol 7', 'Pádel', 'Básquet', 'Tenis', 'Vóley']
+const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
 
 const ZONES = [
   'Centro/Cordón',
@@ -18,6 +18,13 @@ const ZONES = [
   'Otra',
 ]
 
+// Horarios cada 30 min: 08:00 a 23:30
+const TIME_SLOTS = []
+for (let h = 8; h <= 23; h++) {
+  TIME_SLOTS.push(`${h.toString().padStart(2, '0')}:00`)
+  TIME_SLOTS.push(`${h.toString().padStart(2, '0')}:30`)
+}
+
 export default function NewMatchPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -26,14 +33,24 @@ export default function NewMatchPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  // Separate date/time state for UI
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+
   const [formData, setFormData] = useState({
     sport: '',
-    starts_at: '',
+    // starts_at will be composed
     zone: '',
     location_text: '',
     total_slots: 10,
     price_per_person: undefined as number | undefined,
   })
+
+  // Date limits
+  const today = new Date().toISOString().split('T')[0]
+  const maxDateObj = new Date()
+  maxDateObj.setDate(new Date().getDate() + 21) // 3 semanas
+  const maxDate = maxDateObj.toISOString().split('T')[0]
 
   // Load user's zone from profile
   useEffect(() => {
@@ -69,8 +86,21 @@ export default function NewMatchPage() {
     setMessage(null)
 
     try {
+      // Compose starts_at
+      if (!date || !time) {
+        setMessage({ type: 'error', text: 'Seleccioná fecha y hora' })
+        setSaving(false)
+        return
+      }
+      const starts_at = `${date}T${time}:00`
+
+      const payload = {
+        ...formData,
+        starts_at,
+      }
+
       // Validate
-      const result = createMatchSchema.safeParse(formData)
+      const result = createMatchSchema.safeParse(payload)
       if (!result.success) {
         const firstError = result.error.issues[0]
         setMessage({ type: 'error', text: firstError.message })
@@ -115,8 +145,6 @@ export default function NewMatchPage() {
         return
       }
 
-      // ✅ Defensive + Tipado explícito para evitar "never"
-      // Utilizamos un cast seguro para asegurar que TS sepa que data tiene la forma correcta
       const matchData = data as { id: string } | null
       const matchId = matchData?.id
 
@@ -127,7 +155,7 @@ export default function NewMatchPage() {
         return
       }
 
-      // Redirect to match detail with validated ID
+      // Redirect to match detail
       router.push(`/matches/${matchId}`)
     } catch (err) {
       console.error('Error creating match:', err)
@@ -174,21 +202,47 @@ export default function NewMatchPage() {
               </select>
             </div>
 
-            {/* Fecha y hora */}
-            <div>
-              <label htmlFor="starts_at" className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha y hora <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="starts_at"
-                type="datetime-local"
-                value={formData.starts_at}
-                onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
-                disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
-                required
-              />
+            {/* Fecha y Hora (Separados) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="date"
+                  type="date"
+                  min={today}
+                  max={maxDate}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  disabled={saving}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-2">
+                  Hora <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  disabled={saving}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                  required
+                >
+                  <option value="">Hora</option>
+                  {TIME_SLOTS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+            <p className="text-xs text-gray-500">
+              Máximo 3 semanas de anticipación.
+            </p>
 
             {/* Zona */}
             <div>

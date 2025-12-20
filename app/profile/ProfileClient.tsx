@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { profileSchema } from '@/lib/validations'
 import { useRouter, useSearchParams } from 'next/navigation'
+import type { Database } from '@/lib/types'
 
 const ZONES = [
   'Centro/Cordón',
@@ -16,7 +17,8 @@ const ZONES = [
   'Otra',
 ]
 
-const SPORTS = ['Fútbol 5', 'Fútbol 7', 'Pádel', 'Básquet']
+const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
+const PADEL_CATEGORIES = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']
 
 export default function ProfileClient() {
   const router = useRouter()
@@ -33,9 +35,10 @@ export default function ProfileClient() {
     last_name: '',
     whatsapp: '',
     zone: '',
-    level: undefined as number | undefined,
+    level: undefined as number | undefined, // Futbol 5
     sports: [] as string[],
-    padel_level: undefined as number | undefined,
+    padel_category: '',
+    tennis_level: undefined as number | undefined,
   })
 
   // Load existing profile
@@ -55,9 +58,8 @@ export default function ProfileClient() {
         .select('*')
         .eq('id', user.id)
         .single()
-
-      // ⚠️ Cast manual para evitar error "never" por fallos de inferencia
-      const profile = data as unknown as import('@/lib/types').Profile | null
+      
+      const profile = data
 
       if (profile) {
         setFormData({
@@ -67,7 +69,8 @@ export default function ProfileClient() {
           zone: profile.zone || '',
           level: profile.level || undefined,
           sports: profile.sports || [],
-          padel_level: profile.padel_level || undefined,
+          padel_category: profile.padel_category || '',
+          tennis_level: profile.tennis_level || undefined,
         })
       }
 
@@ -83,8 +86,16 @@ export default function ProfileClient() {
     setMessage(null)
 
     try {
-      // Validate
-      const result = profileSchema.safeParse(formData)
+      // Logic: If sport is NOT selected, ensure its level is null
+      const finalData = {
+        ...formData,
+        level: formData.sports.includes('Fútbol 5') ? formData.level : null,
+        padel_category: formData.sports.includes('Pádel') ? formData.padel_category : null,
+        tennis_level: formData.sports.includes('Tenis') ? formData.tennis_level : null,
+      } as any
+
+      // Validate with Zod
+      const result = profileSchema.safeParse(finalData)
       if (!result.success) {
         setMessage({ type: 'error', text: result.error.issues[0].message })
         setSaving(false)
@@ -102,7 +113,9 @@ export default function ProfileClient() {
       }
 
       // Upsert profile
-      const updates = {
+      // Using 'as any' safely here because lib/types is updated but TS might complain about partial matches or exact types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updates: any = {
         id: user.id,
         first_name: result.data.first_name,
         last_name: result.data.last_name,
@@ -110,11 +123,13 @@ export default function ProfileClient() {
         zone: result.data.zone || null,
         level: result.data.level || null,
         sports: result.data.sports || null,
-        padel_level: result.data.sports?.includes('Pádel') ? result.data.padel_level : null,
+        padel_category: result.data.padel_category || null,
+        tennis_level: result.data.tennis_level || null,
         updated_at: new Date().toISOString(),
       }
       
-      const { error } = await supabase.from('profiles').upsert(updates as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from('profiles').upsert(updates as any)
 
       if (error) {
         setMessage({ type: 'error', text: error.message })
@@ -125,7 +140,7 @@ export default function ProfileClient() {
       setMessage({ type: 'success', text: '¡Perfil guardado!' })
       setTimeout(() => {
         router.push(redirectTo)
-      }, 1000)
+      }, 800)
     } catch {
       setMessage({ type: 'error', text: 'Error inesperado. Intentá de nuevo.' })
       setSaving(false)
@@ -200,7 +215,7 @@ export default function ProfileClient() {
                 required
               />
               <p className="mt-1 text-sm text-gray-500">
-                Podés usar espacios o guiones, se normalizará automáticamente
+                Solo números (9-15 dígitos)
               </p>
             </div>
 
@@ -225,93 +240,121 @@ export default function ProfileClient() {
               </select>
             </div>
 
-            {/* Nivel */}
-            <div>
-              <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
-                Nivel (opcional)
+            {/* Deportes y Niveles */}
+            <div className="pt-4 border-t border-gray-100">
+              <label className="block text-lg font-medium text-gray-900 mb-4">
+                Deportes y Niveles
               </label>
-              <select
-                id="level"
-                value={formData.level || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, level: e.target.value ? Number(e.target.value) : undefined })
-                }
-                disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
-              >
-                <option value="">Seleccioná tu nivel</option>
-                <option value="1">1 - Principiante</option>
-                <option value="2">2 - Básico</option>
-                <option value="3">3 - Intermedio</option>
-                <option value="4">4 - Avanzado</option>
-                <option value="5">5 - Experto</option>
-              </select>
-              <p className="mt-1 text-sm text-gray-500">Nivel aproximado, no te preocupes</p>
-            </div>
-
-            {/* Deportes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Deportes que jugás (opcional)
-              </label>
-              <div className="space-y-2">
-                {SPORTS.map((sport) => (
-                  <label key={sport} className="flex items-center gap-2 cursor-pointer">
+              
+              <div className="space-y-6">
+                
+                {/* Fútbol 5 */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="flex items-center gap-3 cursor-pointer mb-3">
                     <input
                       type="checkbox"
-                      checked={formData.sports.includes(sport)}
+                      checked={formData.sports.includes('Fútbol 5')}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({ ...formData, sports: [...formData.sports, sport] })
-                        } else {
-                          setFormData({
-                            ...formData,
-                            sports: formData.sports.filter((s) => s !== sport),
-                            // Si deselecciona Pádel, limpiar padel_level
-                            padel_level: sport === 'Pádel' ? undefined : formData.padel_level,
-                          })
-                        }
+                        const newSports = e.target.checked
+                          ? [...formData.sports, 'Fútbol 5']
+                          : formData.sports.filter(s => s !== 'Fútbol 5')
+                        setFormData({ ...formData, sports: newSports })
                       }}
-                      disabled={saving}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
-                    <span className="text-gray-700">{sport}</span>
+                    <span className="font-semibold text-gray-800">Fútbol 5</span>
                   </label>
-                ))}
+                  
+                  {formData.sports.includes('Fútbol 5') && (
+                    <div className="ml-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="block text-sm text-gray-700 mb-1">Nivel de Fútbol 5 *</label>
+                      <select
+                        value={formData.level || ''}
+                        onChange={(e) => setFormData({ ...formData, level: Number(e.target.value) })}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      >
+                        <option value="">Seleccioná nivel</option>
+                        {[1, 2, 3, 4, 5].map(l => (
+                          <option key={l} value={l}>{l} - {['Principiante', 'Básico', 'Intermedio', 'Avanzado', 'Experto'][l-1]}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pádel */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="flex items-center gap-3 cursor-pointer mb-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.sports.includes('Pádel')}
+                      onChange={(e) => {
+                        const newSports = e.target.checked
+                          ? [...formData.sports, 'Pádel']
+                          : formData.sports.filter(s => s !== 'Pádel')
+                        setFormData({ ...formData, sports: newSports })
+                      }}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="font-semibold text-gray-800">Pádel</span>
+                  </label>
+                  
+                  {formData.sports.includes('Pádel') && (
+                    <div className="ml-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="block text-sm text-gray-700 mb-1">Categoría de Pádel *</label>
+                      <select
+                        value={formData.padel_category || ''}
+                        onChange={(e) => setFormData({ ...formData, padel_category: e.target.value })}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      >
+                        <option value="">Seleccioná categoría</option>
+                        {PADEL_CATEGORIES.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tenis */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="flex items-center gap-3 cursor-pointer mb-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.sports.includes('Tenis')}
+                      onChange={(e) => {
+                        const newSports = e.target.checked
+                          ? [...formData.sports, 'Tenis']
+                          : formData.sports.filter(s => s !== 'Tenis')
+                        setFormData({ ...formData, sports: newSports })
+                      }}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="font-semibold text-gray-800">Tenis</span>
+                  </label>
+                  
+                  {formData.sports.includes('Tenis') && (
+                    <div className="ml-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="block text-sm text-gray-700 mb-1">Nivel de Tenis *</label>
+                      <select
+                        value={formData.tennis_level || ''}
+                        onChange={(e) => setFormData({ ...formData, tennis_level: Number(e.target.value) })}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      >
+                        <option value="">Seleccioná nivel</option>
+                        {[1, 2, 3, 4, 5].map(l => (
+                          <option key={l} value={l}>{l} - {['Principiante', 'Básico', 'Intermedio', 'Avanzado', 'Experto'][l-1]}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
-
-            {/* Nivel de Pádel (condicional) */}
-            {formData.sports.includes('Pádel') && (
-              <div>
-                <label htmlFor="padel_level" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nivel de Pádel <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="padel_level"
-                  value={formData.padel_level || ''}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      padel_level: e.target.value ? Number(e.target.value) : undefined,
-                    })
-                  }
-                  disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
-                  required
-                >
-                  <option value="">Seleccioná tu nivel de Pádel</option>
-                  <option value="1">1 - Principiante</option>
-                  <option value="2">2 - Básico</option>
-                  <option value="3">3 - Intermedio</option>
-                  <option value="4">4 - Avanzado</option>
-                  <option value="5">5 - Experto</option>
-                </select>
-                <p className="mt-1 text-sm text-gray-500">
-                  Nivel específico de Pádel (obligatorio si seleccionaste Pádel)
-                </p>
-              </div>
-            )}
 
             {/* Submit */}
             <button

@@ -48,11 +48,10 @@ export const profileSchema = z.object({
 export type ProfileFormData = z.infer<typeof profileSchema>
 
 // Match creation validation
-// Match creation validation
+const SPORT_OPTIONS = ['Fútbol 5', 'Pádel', 'Tenis'] as const
+
 export const createMatchSchema = z.object({
-  sport: z.enum(['Fútbol 5', 'Pádel', 'Tenis'], {
-    errorMap: () => ({ message: 'Deporte inválido' }),
-  }),
+  sport: z.enum(SPORT_OPTIONS, { message: 'Deporte inválido' }),
   starts_at: z.string().refine((val) => {
     // Validar formato ISO simplificado
     const date = new Date(val)

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { Profile } from '@/lib/types'
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,11 +17,13 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   }
 
   // 2. Fetch Player Profile
-  const { data: profile, error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', id)
-    .single()
+    .maybeSingle()
+
+  const profile = data as Profile | null
 
   if (error || !profile) {
     if (error?.code === 'PGRST116') {
@@ -87,7 +90,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
               <h2 className="text-xl font-bold text-gray-900 mb-4">Deportes</h2>
               {sports.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {sports.map((sport) => (
+                  {sports.map((sport: string) => (
                     <div key={sport} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                       <div className="font-semibold text-gray-900 mb-1">{sport}</div>
                       <div className="text-blue-600 font-medium">

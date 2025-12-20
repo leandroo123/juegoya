@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { profileSchema } from '@/lib/validations'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { Database } from '@/lib/types'
+import type { Database, Profile } from '@/lib/types'
 
 const ZONES = [
   'Centro/Cordón',
@@ -57,9 +57,9 @@ export default function ProfileClient() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
       
-      const profile = data
+      const profile = data as Profile | null
 
       if (profile) {
         setFormData({

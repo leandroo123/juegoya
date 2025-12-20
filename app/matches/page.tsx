@@ -34,17 +34,23 @@ export default async function MatchesPage() {
     .order('starts_at', { ascending: true })
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Partidos</h1>
-          <Link
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="bg-white border-b sticky top-0 z-10 w-full shadow-sm p-4 flex items-center justify-between">
+         <div className="flex items-center gap-4">
+             <Link href="/home" className="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+             </Link>
+             <h1 className="text-xl font-bold text-gray-900">Partidos</h1>
+         </div>
+         <Link
             href="/matches/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition"
           >
-            Crear partido
+            Crear
           </Link>
-        </div>
+      </div>
+      
+      <div className="max-w-4xl mx-auto px-4 mt-6">
 
         {!isProfileComplete && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">

@@ -61,6 +61,7 @@ export interface Database {
           location_text: string
           total_slots: number
           price_per_person: number | null
+          padel_level: string | null
           status: 'open' | 'canceled' | 'finished'
           created_at: string
           updated_at: string
@@ -74,6 +75,7 @@ export interface Database {
           location_text: string
           total_slots: number
           price_per_person?: number | null
+          padel_level?: string | null
           status?: 'open' | 'canceled' | 'finished'
           created_at?: string
           updated_at?: string
@@ -85,8 +87,9 @@ export interface Database {
           starts_at?: string
           zone?: string
           location_text?: string
-          total_slots?: number
+          total_slots: number
           price_per_person?: number | null
+          padel_level?: string | null
           status?: 'open' | 'canceled' | 'finished'
           created_at?: string
           updated_at?: string

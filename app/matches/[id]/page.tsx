@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import MatchActions from './MatchActions'
 import ShareButton from './ShareButton'
+import BackHeader from '@/components/BackHeader'
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap async params (Next.js 16+)
@@ -92,8 +93,10 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <BackHeader title={(match as any).sport} destination="/matches" />
+      
+      <div className="max-w-4xl mx-auto px-4 mt-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <div className="flex justify-between items-start mb-6">
@@ -154,6 +157,17 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
                 </p>
               </div>
             </div>
+            
+            {/* Nivel Padel */}
+            {(match as any).padel_level && (
+               <div className="flex items-center gap-3 text-gray-700">
+                <span className="text-2xl">🎾</span>
+                <div>
+                  <p className="font-semibold">Nivel</p>
+                  <p>{(match as any).padel_level}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Share button */}

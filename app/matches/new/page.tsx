@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { createMatchSchema } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
+import BackHeader from '@/components/BackHeader'
 
 const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
+const PADEL_LEVELS = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']
 
 const ZONES = [
   'Centro/Cordón',
@@ -18,11 +20,14 @@ const ZONES = [
   'Otra',
 ]
 
-// Horarios cada 30 min: 08:00 a 23:30
-const TIME_SLOTS = []
-for (let h = 8; h <= 23; h++) {
+// Horarios cada 30 min: 06:00 a 23:30
+const TIME_SLOTS: string[] = []
+for (let h = 6; h <= 23; h++) {
   TIME_SLOTS.push(`${h.toString().padStart(2, '0')}:00`)
-  TIME_SLOTS.push(`${h.toString().padStart(2, '0')}:30`)
+  // Último horario 23:30
+  if (h !== 24) {
+    TIME_SLOTS.push(`${h.toString().padStart(2, '0')}:30`)
+  }
 }
 
 export default function NewMatchPage() {
@@ -39,11 +44,11 @@ export default function NewMatchPage() {
 
   const [formData, setFormData] = useState({
     sport: '',
-    // starts_at will be composed
     zone: '',
     location_text: '',
     total_slots: 10,
     price_per_person: undefined as number | undefined,
+    padel_level: undefined as string | undefined, // New field
   })
 
   // Date limits
@@ -52,7 +57,7 @@ export default function NewMatchPage() {
   maxDateObj.setDate(new Date().getDate() + 21) // 3 semanas
   const maxDate = maxDateObj.toISOString().split('T')[0]
 
-  // Load user's zone from profile
+  // Load user's zone / profile
   useEffect(() => {
     async function loadProfile() {
       const {
@@ -79,14 +84,12 @@ export default function NewMatchPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Prevent double submit
     if (saving) return
 
     setSaving(true)
     setMessage(null)
 
     try {
-      // Compose starts_at
       if (!date || !time) {
         setMessage({ type: 'error', text: 'Seleccioná fecha y hora' })
         setSaving(false)
@@ -94,12 +97,15 @@ export default function NewMatchPage() {
       }
       const starts_at = `${date}T${time}:00`
 
+      // If sport is NOT Padel, ensure padel_level is null
+      const finalPadelLevel = formData.sport === 'Pádel' ? formData.padel_level : null
+
       const payload = {
         ...formData,
+        padel_level: finalPadelLevel, // override
         starts_at,
       }
 
-      // Validate
       const result = createMatchSchema.safeParse(payload)
       if (!result.success) {
         const firstError = result.error.issues[0]
@@ -118,7 +124,6 @@ export default function NewMatchPage() {
         return
       }
 
-      // Create match with explicit ID selection
       const { data, error } = await supabase
         .from('matches')
         .insert({
@@ -129,6 +134,7 @@ export default function NewMatchPage() {
           location_text: result.data.location_text,
           total_slots: result.data.total_slots,
           price_per_person: result.data.price_per_person || null,
+          padel_level: (result.data as any).padel_level || null, // Guardamos nivel
           status: 'open',
         } as any)
         .select('id')
@@ -149,17 +155,15 @@ export default function NewMatchPage() {
       const matchId = matchData?.id
 
       if (!matchId) {
-        console.error('Match created but no ID returned:', data)
-        setMessage({ type: 'error', text: 'No se pudo crear el partido (sin ID). Intentá de nuevo.' })
+        setMessage({ type: 'error', text: 'Error creando partido (sin ID)' })
         setSaving(false)
         return
       }
 
-      // Redirect to match detail
       router.push(`/matches/${matchId}`)
     } catch (err) {
-      console.error('Error creating match:', err)
-      setMessage({ type: 'error', text: 'Error de conexión. Verificá tu internet e intentá de nuevo.' })
+      console.error('Error:', err)
+      setMessage({ type: 'error', text: 'Error de conexión' })
       setSaving(false)
     }
   }
@@ -173,11 +177,13 @@ export default function NewMatchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pb-8">
+      {/* HEADER con Flecha Atrás */}
+      <BackHeader title="Crear Partido" destination="/matches" />
+
+      <div className="max-w-2xl mx-auto px-4 mt-6">
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Crear Partido</h1>
-          <p className="text-gray-600 mb-8">Completá los datos y compartí el link</p>
+          <p className="text-gray-600 mb-8">Completá los datos y compartí el link.</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Deporte */}
@@ -190,7 +196,7 @@ export default function NewMatchPage() {
                 value={formData.sport}
                 onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               >
                 <option value="">Seleccioná el deporte</option>
@@ -202,7 +208,34 @@ export default function NewMatchPage() {
               </select>
             </div>
 
-            {/* Fecha y Hora (Separados) */}
+            {/* NIVEL DE PADEL (Condicional) */}
+            {formData.sport === 'Pádel' && (
+              <div className="animate-fade-in">
+                <label htmlFor="padel_level" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nivel de Pádel <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="padel_level"
+                  value={formData.padel_level || ''}
+                  onChange={(e) => setFormData({ ...formData, padel_level: e.target.value })}
+                  disabled={saving}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  required
+                >
+                  <option value="">Seleccioná el nivel</option>
+                  {PADEL_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-blue-600 mt-1">
+                  Estrictamente requerido para balancear el partido.
+                </p>
+              </div>
+            )}
+
+            {/* Fecha y Hora */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
@@ -216,7 +249,7 @@ export default function NewMatchPage() {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   required
                 />
               </div>
@@ -230,7 +263,7 @@ export default function NewMatchPage() {
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   required
                 >
                   <option value="">Hora</option>
@@ -240,10 +273,7 @@ export default function NewMatchPage() {
                 </select>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
-              Máximo 3 semanas de anticipación.
-            </p>
-
+            
             {/* Zona */}
             <div>
               <label htmlFor="zone" className="block text-sm font-medium text-gray-700 mb-2">
@@ -254,7 +284,7 @@ export default function NewMatchPage() {
                 value={formData.zone}
                 onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               >
                 <option value="">Seleccioná la zona</option>
@@ -278,7 +308,7 @@ export default function NewMatchPage() {
                 onChange={(e) => setFormData({ ...formData, location_text: e.target.value })}
                 placeholder="Ej: Complejo Deportivo X, Cancha 3"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
             </div>
@@ -296,7 +326,7 @@ export default function NewMatchPage() {
                 value={formData.total_slots}
                 onChange={(e) => setFormData({ ...formData, total_slots: Number(e.target.value) })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
             </div>
@@ -320,7 +350,7 @@ export default function NewMatchPage() {
                 }
                 placeholder="Ej: 200"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               />
               <p className="mt-1 text-sm text-gray-500">En pesos uruguayos (UYU)</p>
             </div>

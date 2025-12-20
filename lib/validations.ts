@@ -48,21 +48,43 @@ export const profileSchema = z.object({
 export type ProfileFormData = z.infer<typeof profileSchema>
 
 // Match creation validation
+// Match creation validation
 export const createMatchSchema = z.object({
   sport: z.enum(['Fútbol 5', 'Pádel', 'Tenis'], {
-    errorMap: (issue, ctx) => ({ message: 'Deporte inválido' }),
+    errorMap: () => ({ message: 'Deporte inválido' }),
   }),
   starts_at: z.string().refine((val) => {
+    // Validar formato ISO simplificado
     const date = new Date(val)
+    if (isNaN(date.getTime())) return false
+    
     const now = new Date()
     const maxDate = new Date()
-    maxDate.setDate(now.getDate() + 21)
-    return date > now && date <= maxDate
-  }, 'La fecha debe ser futura y no mayor a 3 semanas'),
+    maxDate.setDate(now.getDate() + 21) // 3 semanas máximo
+
+    // Fecha futura y dentro del rango
+    if (date <= now) return false
+    if (date > maxDate) return false
+
+    // Validar minutos 00 o 30
+    const minutes = date.getMinutes()
+    if (minutes !== 0 && minutes !== 30) return false
+
+    return true
+  }, 'La fecha debe ser futura (máx 21 días) y en horarios redondos (:00 o :30)'),
   zone: z.string().min(1, 'La zona es obligatoria').max(100),
   location_text: z.string().min(1, 'La ubicación es obligatoria').max(200),
   total_slots: z.number().int().min(1, 'Debe haber al menos 1 cupo').max(100, 'Máximo 100 cupos'),
   price_per_person: z.number().nonnegative().optional(),
+  padel_level: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.sport === 'Pádel' && !data.padel_level) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'El nivel de pádel es obligatorio para partidos de Pádel',
+      path: ['padel_level'],
+    })
+  }
 })
 
 export type CreateMatchFormData = z.infer<typeof createMatchSchema>

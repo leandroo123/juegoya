@@ -52,11 +52,26 @@ export async function middleware(request: NextRequest) {
   const isMatchesListRoute = request.nextUrl.pathname === '/matches'
   const needsAuth = isProtectedRoute || isMatchesListRoute
 
-  if (needsAuth && !user) {
+  // Helper function to handle redirects while preserving cookies
+  const safeRedirect = (path: string) => {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = path
     url.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    
+    const redirectResponse = NextResponse.redirect(url)
+    
+    // Copy cookies from supabaseResponse (which might contain refreshed session)
+    const newCookies = supabaseResponse.cookies.getAll()
+    newCookies.forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    
+    return redirectResponse
+  }
+
+  // Protected routes check
+  if (needsAuth && !user) {
+    return safeRedirect('/login')
   }
 
   // Check profile completion for authenticated users on non-exempt routes
@@ -70,10 +85,7 @@ export async function middleware(request: NextRequest) {
     const isComplete = !!(profile?.first_name && profile?.last_name && profile?.whatsapp)
 
     if (!isComplete) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/profile'
-      url.searchParams.set('redirect', request.nextUrl.pathname)
-      return NextResponse.redirect(url)
+      return safeRedirect('/profile')
     }
   }
 

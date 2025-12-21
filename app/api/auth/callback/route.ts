@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
-      console.error('Auth callback error:', error)
-      return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+      console.error('Auth callback error during exchange:', error)
+      return NextResponse.redirect(`${origin}/login?error=auth_failed_exchange`)
     }
   }
 
@@ -27,5 +27,6 @@ export async function GET(request: Request) {
     destination = `${origin}${redirect}`
   }
 
+  // Successful login, redirect to destination
   return NextResponse.redirect(destination)
 }

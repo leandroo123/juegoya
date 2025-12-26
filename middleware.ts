@@ -35,7 +35,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Routes that don't require profile completion
-  const profileExemptRoutes = ['/login', '/profile', '/api/auth/callback']
+  // Routes that don't require profile completion
+  const profileExemptRoutes = ['/login', '/profile', '/api/auth/callback', '/']
   const isProfileExempt = profileExemptRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )
@@ -43,14 +44,15 @@ export async function middleware(request: NextRequest) {
   const isMatchDetailRoute = /^\/matches\/[^\/]+$/.test(request.nextUrl.pathname)
 
   // Protected routes (require auth)
-  const protectedRoutes = ['/profile', '/matches/new', '/home', '/players']
+  // Routes that require auth
+  const protectedRoutes = ['/profile', '/matches/new', '/players']
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )
 
-  // /matches requires auth, but /matches/[id] is public
-  const isMatchesListRoute = request.nextUrl.pathname === '/matches'
-  const needsAuth = isProtectedRoute || isMatchesListRoute
+  // Explicitly protect specific actions or pages if needed, but allow public browsing
+  // matches list and detail should be public
+  const needsAuth = isProtectedRoute
 
   // Helper function to handle redirects while preserving cookies
   const safeRedirect = (path: string) => {
@@ -85,7 +87,7 @@ export async function middleware(request: NextRequest) {
     const isComplete = !!(profile?.first_name && profile?.last_name && profile?.whatsapp)
 
     if (!isComplete) {
-      return safeRedirect('/profile')
+      return safeRedirect('/profile/edit')
     }
   }
 
@@ -99,8 +101,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - google*.html (Google Search Console verification)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|google.*\\.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

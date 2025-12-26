@@ -7,7 +7,12 @@ interface ConfirmAttendanceButtonProps {
   matchId: string
   matchStartsAt: string
   isConfirmed: boolean
-  userParticipation: any
+  userParticipation: {
+    user_id: string
+    role: string
+    confirmed_at?: string | null
+    canceled_at?: string | null
+  } | null
 }
 
 export default function ConfirmAttendanceButton({ 

@@ -34,7 +34,7 @@ export async function POST(
   // Update confirmed_at
   const { error } = await supabase
     .from('match_players')
-    .update({ confirmed_at: new Date().toISOString() })
+    .update({ confirmed_at: new Date().toISOString() } as any)
     .eq('match_id', id)
     .eq('user_id', user.id)
 

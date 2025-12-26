@@ -83,7 +83,16 @@ export default function LoginClient() {
           // Continue anyway, auth worked
         }
 
-        router.push(redirectPath)
+        // Show success message
+        setMessage({ 
+          type: 'success', 
+          text: '✅ ¡Cuenta creada exitosamente! Ya podés usar la app.' 
+        })
+        
+        // Redirect after 1.5 seconds
+        setTimeout(() => {
+          router.push(redirectPath)
+        }, 1500)
       }
     } catch (err: unknown) {
       console.error(err)

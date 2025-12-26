@@ -32,9 +32,10 @@ export async function POST(
   }
 
   // Update confirmed_at
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await supabase
     .from('match_players')
-    .update({ confirmed_at: new Date().toISOString() } as any)
+    .update({ confirmed_at: new Date().toISOString() })
     .eq('match_id', id)
     .eq('user_id', user.id)
 

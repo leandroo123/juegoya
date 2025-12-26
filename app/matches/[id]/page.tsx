@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import MatchActions from './MatchActions'
 import ShareButton from './ShareButton'
 import DeleteMatchButton from './DeleteMatchButton'
+import ConfirmAttendanceButton from './ConfirmAttendanceButton'
 import BackHeader from '@/components/BackHeader'
 import Link from 'next/link'
 
@@ -73,6 +74,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const substitutes = players.filter(
     (p: any) => p.role === 'substitute' && !p.canceled_at
   )
+  const confirmedPlayers = activePlayers.filter((p: any) => p.confirmed_at)
   const filledSlots = activePlayers.length
   const totalSlots = (match as any).total_slots
   const isFull = filledSlots >= totalSlots
@@ -218,6 +220,18 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           />
         )}
 
+        {/* Confirmation button (only for signed up players) */}
+        {user && userParticipation && (
+          <div className="mb-6">
+            <ConfirmAttendanceButton 
+              matchId={id}
+              matchStartsAt={(match as any).starts_at}
+              isConfirmed={!!userParticipation.confirmed_at}
+              userParticipation={userParticipation}
+            />
+          </div>
+        )}
+
         {/* Delete button (only for organizer) */}
         {user && (match as any).organizer_id === user.id && !isCanceled && !isFinished && (
           <div className="mb-6">
@@ -241,9 +255,14 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
 
             {/* Titulares */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                Titulares ({filledSlots}/{totalSlots})
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Titulares ({filledSlots}/{totalSlots})
+                </h3>
+                <span className="text-sm font-medium text-green-600">
+                  ✓ {confirmedPlayers.length} confirmados
+                </span>
+              </div>
               {activePlayers.length > 0 ? (
                 <ul className="space-y-2">
                   {activePlayers.map((player: any, index: number) => (

@@ -24,7 +24,7 @@ export async function DELETE(
     .eq('id', id)
     .single()
 
-  if (!match || match.organizer_id !== user.id) {
+  if (!match || (match as { organizer_id: string }).organizer_id !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

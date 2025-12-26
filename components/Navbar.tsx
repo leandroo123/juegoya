@@ -14,6 +14,9 @@ export default function Navbar() {
           <Link href="/matches" className="text-gray-600 hover:text-gray-900">
             Partidos
           </Link>
+          <Link href="/my-matches" className="text-gray-600 hover:text-gray-900">
+            Mis Partidos
+          </Link>
           <Link href="/matches/new" className="text-gray-600 hover:text-gray-900">
             Crear
           </Link>

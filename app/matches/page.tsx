@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Match, MatchPlayer, Profile } from '@/lib/types'
+import MatchesClient from './MatchesClient'
+
+type MatchWithDetails = Match & {
+  organizer: Pick<Profile, 'first_name' | 'last_name'> | null
+  players: Pick<MatchPlayer, 'role' | 'canceled_at'>[]
+}
 
 export default async function MatchesPage() {
   const supabase = await createClient()
@@ -8,21 +14,21 @@ export default async function MatchesPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
+  // Check if profile is complete (only for authenticated users)
+  let isProfileComplete = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, whatsapp')
+      .eq('id', user.id)
+      .single()
+
+    const typedProfile = profile as { first_name: string | null; last_name: string | null; whatsapp: string | null } | null
+    isProfileComplete = !!(typedProfile?.first_name && typedProfile?.last_name && typedProfile?.whatsapp)
   }
 
-  // Check if profile is complete
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, last_name, whatsapp')
-    .eq('id', user.id)
-    .single()
-
-  const isProfileComplete = !!(profile && (profile as any).first_name && (profile as any).last_name && (profile as any).whatsapp)
-
-  // Fetch upcoming open matches
-  const { data: matches } = await supabase
+  // Fetch upcoming open matches (public, no auth required)
+  const { data: matchesData } = await supabase
     .from('matches')
     .select(`
       *,
@@ -33,110 +39,28 @@ export default async function MatchesPage() {
     .gte('starts_at', new Date().toISOString())
     .order('starts_at', { ascending: true })
 
+  const matches = matchesData as unknown as MatchWithDetails[] | null
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      <div className="bg-white border-b sticky top-0 z-10 w-full shadow-sm p-4 flex items-center justify-between">
-         <div className="flex items-center gap-4">
-             <Link href="/home" className="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-             </Link>
-             <h1 className="text-xl font-bold text-gray-900">Partidos</h1>
-         </div>
-         <Link
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-8">
+      <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/home" className="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100/50 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </Link>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Partidos</h1>
+          </div>
+          <Link
             href="/matches/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            Crear
+            + Crear
           </Link>
+        </div>
       </div>
       
-      <div className="max-w-4xl mx-auto px-4 mt-6">
-
-        {!isProfileComplete && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <p className="text-yellow-800 font-medium">
-              ⚠️ Completá tu perfil para crear o unirte a partidos
-            </p>
-            <Link
-              href="/profile"
-              className="text-yellow-900 underline hover:text-yellow-700 text-sm mt-1 inline-block"
-            >
-              Ir a mi perfil →
-            </Link>
-          </div>
-        )}
-
-        {matches && matches.length > 0 ? (
-          <div className="space-y-4">
-            {matches.map((match: any) => {
-              const activePlayers = match.players?.filter((p: any) => p.role === 'signed_up' && !p.canceled_at) || []
-              const filledSlots = activePlayers.length
-              const totalSlots = match.total_slots
-
-              return (
-                <Link
-                  key={match.id}
-                  href={`/matches/${match.id}`}
-                  className="block bg-white rounded-lg shadow hover:shadow-md transition p-6"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">{match.sport}</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {new Date(match.starts_at).toLocaleDateString('es-UY', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}{' '}
-                        a las{' '}
-                        {new Date(match.starts_at).toLocaleTimeString('es-UY', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {filledSlots}/{totalSlots}
-                      </div>
-                      <p className="text-xs text-gray-500">cupos</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">📍</span> {match.zone}
-                    </div>
-                    <div>
-                      <span className="font-medium">🏟️</span> {match.location_text}
-                    </div>
-                    {match.price_per_person && (
-                      <div>
-                        <span className="font-medium">💵</span> ${match.price_per_person}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-3 text-xs text-gray-500">
-                    Organiza: {match.organizer?.first_name} {match.organizer?.last_name}
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-600 mb-4">No hay partidos disponibles</p>
-            <Link
-              href="/matches/new"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              Crear el primer partido
-            </Link>
-          </div>
-        )}
-      </div>
+      <MatchesClient matches={matches} isProfileComplete={isProfileComplete} />
     </div>
   )
 }

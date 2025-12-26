@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import MatchActions from './MatchActions'
 import ShareButton from './ShareButton'
+import DeleteMatchButton from './DeleteMatchButton'
 import BackHeader from '@/components/BackHeader'
+import Link from 'next/link'
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap async params (Next.js 16+)
@@ -186,24 +188,24 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
             <p className="text-blue-900 font-medium mb-3">
               Iniciá sesión para anotarte a este partido
             </p>
-            <a
+            <Link
               href={`/login?redirect=/matches/${id}`}
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
             >
               Iniciar sesión
-            </a>
+            </Link>
           </div>
         ) : !isProfileComplete ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center mb-6">
             <p className="text-yellow-800 font-medium mb-3">
               Completá tu perfil para unirte a partidos
             </p>
-            <a
-              href={`/profile?redirect=/matches/${id}`}
+            <Link
+              href={`/profile/edit?redirect=/matches/${id}`}
               className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-6 rounded-lg transition"
             >
               Completar perfil
-            </a>
+            </Link>
           </div>
         ) : (
           <MatchActions
@@ -211,8 +213,18 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
             isFull={isFull}
             userParticipation={userParticipation}
             matchStatus={matchStatus}
+            matchSport={(match as any).sport}
+            matchPadelLevel={(match as any).padel_level}
           />
         )}
+
+        {/* Delete button (only for organizer) */}
+        {user && (match as any).organizer_id === user.id && !isCanceled && !isFinished && (
+          <div className="mb-6">
+            <DeleteMatchButton matchId={id} isOrganizer={true} />
+          </div>
+        )}
+
 
         {/* Player roster (only for authenticated users) */}
         {user && (

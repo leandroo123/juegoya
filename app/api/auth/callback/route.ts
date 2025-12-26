@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     
     if (error) {
       console.error('Auth callback error during exchange:', error)
-      return NextResponse.redirect(`${origin}/login?error=auth_failed_exchange`)
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message || 'otp_failed')}`)
     }
   }
 

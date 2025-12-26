@@ -43,6 +43,15 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Jugador'
   const sports = profile.sports || []
 
+  // Helper to format WhatsApp number for wa.me links
+  // Removes ALL non-numeric characters (including +, spaces, hyphens, parentheses)
+  // WhatsApp API requires clean international format: e.g., 5989XXXXXXXX for Uruguay
+  const formatWhatsAppNumber = (whatsapp: string) => {
+    // Remove all non-numeric characters
+    const cleaned = whatsapp.replace(/\D/g, '')
+    return cleaned
+  }
+
   // Helper to get level display
   const getLevelDisplay = (sport: string) => {
     if (sport === 'Fútbol 5') return profile.level ? `Nivel ${profile.level}` : 'Sin nivel'
@@ -71,7 +80,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {profile.whatsapp && (
               <div>
                 <a
-                  href={`https://wa.me/${profile.whatsapp}`}
+                  href={`https://wa.me/${formatWhatsAppNumber(profile.whatsapp)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition"

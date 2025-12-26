@@ -2,23 +2,34 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/browser'
+import type { Database, Profile } from '@/lib/types'
 
 interface MatchActionsProps {
   matchId: string
   isFull: boolean
   userParticipation: { role: 'signed_up' | 'substitute' } | null
   matchStatus: 'open' | 'canceled' | 'finished' | string
+  matchSport: string
+  matchPadelLevel?: string
 }
 
-export default function MatchActions({ matchId, isFull, userParticipation, matchStatus }: MatchActionsProps) {
+export default function MatchActions({ matchId, isFull, userParticipation, matchStatus, matchSport, matchPadelLevel }: MatchActionsProps) {
   const router = useRouter()
-  const supabase = createClient()
+  // Explicitly type the client to ensure generic propagation
+  const supabase: SupabaseClient<Database> = createClient()
 
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const isMatchOpen = matchStatus === 'open'
+
+  // Helper to convert level string (e.g., '6ta') to number (6)
+  const getLevelValue = (levelStr?: string) => {
+    if (!levelStr) return 0
+    return parseInt(levelStr) || 0
+  }
 
   const handleJoin = async (preferSubstitute: boolean) => {
     if (loading) return
@@ -26,34 +37,75 @@ export default function MatchActions({ matchId, isFull, userParticipation, match
     setMessage(null)
 
     try {
-      // En Supabase RPC, si tu función fue creada como join_match(p_match_id uuid, p_prefer_substitute boolean),
-      // los nombres de args deben matchear exactamente.
-      const { data, error } = await supabase.rpc('join_match', {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+         setMessage({ type: 'error', text: 'Debes iniciar sesión.' })
+         setLoading(false)
+         return
+      }
+
+      // Padel Logic Check
+      if (matchSport === 'Pádel' && matchPadelLevel) {
+        // Fetch user profile to get their level
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('padel_category')
+          .eq('id', user.id)
+          .single()
+        
+        // Use proper type assertion or optional chaining
+        const userLevelStr = (profile as unknown as Profile)?.padel_category
+        
+        if (!userLevelStr) {
+           setMessage({ type: 'error', text: 'Tu perfil no tiene categoría de pádel. Actualizalo para unirte.' })
+           setLoading(false)
+           return
+        }
+
+        const matchVal = getLevelValue(matchPadelLevel)
+        const userVal = getLevelValue(userLevelStr)
+
+        // Logic +/- 1 level
+        const diff = Math.abs(matchVal - userVal)
+        
+        if (diff > 1) {
+           setMessage({ type: 'error', text: `Tu categoría (${userLevelStr}) no es compatible con el partido (${matchPadelLevel}). Solo se admite ±1 categoría.` })
+           setLoading(false)
+           return
+        }
+      }
+
+      // Proceed to Join
+      // Use explicit type for RPC args definition to ensure data integrity
+      const rpcArgs: Database['public']['Functions']['join_match']['Args'] = {
         p_match_id: matchId,
         p_prefer_substitute: preferSubstitute,
-      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await supabase.rpc('join_match', rpcArgs as any)
 
       if (error) {
-        const msg =
-          error.message.includes('Not authenticated')
-            ? 'Necesitás iniciar sesión para unirte.'
-            : error.message.includes('not found') || error.message.includes('not open')
-              ? 'Este partido ya no está disponible.'
-              : 'No pudimos anotarte. Intentá de nuevo.'
-        setMessage({ type: 'error', text: msg })
-        setLoading(false)
-        return
+        throw error
       }
 
       const role = data as string
       const roleText = role === 'signed_up' ? 'titular' : 'suplente'
       setMessage({ type: 'success', text: `¡Te anotaste como ${roleText}!` })
 
+      // MOCK WhatsApp Notification
+      console.log('✅ [WhatsApp Mock] Enviando mensaje a usuario...')
+      console.log(`Msg: Te anotaste a un partido de ${matchSport}.`)
+
       router.refresh()
       setLoading(false)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error joining match:', err)
-      setMessage({ type: 'error', text: 'Error de conexión. Verificá tu internet e intentá de nuevo.' })
+      const errorObj = err as Error
+      const msg = errorObj.message || 'Error desconocido'
+       if (msg.includes('Not authenticated')) setMessage({ type: 'error', text: 'Necesitás iniciar sesión.' })
+       else if (msg.includes('not found')) setMessage({ type: 'error', text: 'El partido no está disponible.' })
+       else setMessage({ type: 'error', text: 'No pudimos anotarte. Intentá de nuevo.' })
       setLoading(false)
     }
   }
@@ -64,28 +116,23 @@ export default function MatchActions({ matchId, isFull, userParticipation, match
     setMessage(null)
 
     try {
-      const { error } = await supabase.rpc('leave_match', {
+      const rpcArgs: Database['public']['Functions']['leave_match']['Args'] = {
         p_match_id: matchId,
-      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      }
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.rpc('leave_match', rpcArgs as any)
 
       if (error) {
-        const msg =
-          error.message.includes('Not authenticated')
-            ? 'Necesitás iniciar sesión.'
-            : error.message.includes('Not joined') || error.message.includes('already canceled')
-              ? 'No estás anotado en este partido.'
-              : 'No pudimos darte de baja. Intentá de nuevo.'
-        setMessage({ type: 'error', text: msg })
-        setLoading(false)
-        return
+         throw error
       }
 
       setMessage({ type: 'success', text: 'Te bajaste del partido.' })
       router.refresh()
       setLoading(false)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error leaving match:', err)
-      setMessage({ type: 'error', text: 'Error de conexión. Verificá tu internet e intentá de nuevo.' })
+      setMessage({ type: 'error', text: 'No pudimos darte de baja. Intentá de nuevo.' })
       setLoading(false)
     }
   }

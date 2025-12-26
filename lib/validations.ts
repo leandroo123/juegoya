@@ -8,7 +8,7 @@ export const profileSchema = z.object({
     .string()
     .min(1, 'El WhatsApp es obligatorio')
     .regex(/^[\+\d\s\-()]+$/, 'Solo números, espacios, guiones o paréntesis')
-    .transform((val) => val.replace(/[\s\-()]/g, ''))
+    .transform((val) => val.replace(/\D/g, '')) // Remove ALL non-numeric characters including +
     .refine((val) => val.length >= 9 && val.length <= 15, 'Debe tener entre 9 y 15 dígitos'),
   zone: z.string().max(100).optional().nullable(),
   level: z.number().int().min(1).max(5).optional().nullable(), // Fútbol 5 default

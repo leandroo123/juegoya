@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/browser'
 import { createMatchSchema } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import BackHeader from '@/components/BackHeader'
+import { Database } from '@/lib/types'
 
 const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
 const PADEL_LEVELS = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']
@@ -69,10 +70,11 @@ export default function NewMatchPage() {
         return
       }
 
-      const { data: profile } = await supabase.from('profiles').select('zone').eq('id', user.id).single()
+      const { data: profileData } = await supabase.from('profiles').select('zone').eq('id', user.id).single()
+      const profile = profileData as { zone: string | null } | null
 
-      if (profile && (profile as any).zone) {
-        setFormData((prev) => ({ ...prev, zone: (profile as any).zone }))
+      if (profile?.zone) {
+        setFormData((prev) => ({ ...prev, zone: profile.zone || '' }))
       }
 
       setLoading(false)
@@ -124,19 +126,23 @@ export default function NewMatchPage() {
         return
       }
 
+      // Explicitly typed insert to satisfy Supabase strict typings
+      const newMatch: Database['public']['Tables']['matches']['Insert'] = {
+        organizer_id: user.id,
+        sport: result.data.sport,
+        starts_at: result.data.starts_at,
+        zone: result.data.zone,
+        location_text: result.data.location_text,
+        total_slots: result.data.total_slots,
+        price_per_person: result.data.price_per_person || null,
+        padel_level: result.data.padel_level || null,
+        status: 'open',
+      }
+
       const { data, error } = await supabase
         .from('matches')
-        .insert({
-          organizer_id: user.id,
-          sport: result.data.sport,
-          starts_at: result.data.starts_at,
-          zone: result.data.zone,
-          location_text: result.data.location_text,
-          total_slots: result.data.total_slots,
-          price_per_person: result.data.price_per_person || null,
-          padel_level: (result.data as any).padel_level || null, // Guardamos nivel
-          status: 'open',
-        } as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(newMatch as any)
         .select('id')
         .single()
 
@@ -188,7 +194,7 @@ export default function NewMatchPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Deporte */}
             <div>
-              <label htmlFor="sport" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="sport" className="label-standard mb-2">
                 Deporte <span className="text-red-500">*</span>
               </label>
               <select
@@ -196,7 +202,7 @@ export default function NewMatchPage() {
                 value={formData.sport}
                 onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="input-standard"
                 required
               >
                 <option value="">Seleccioná el deporte</option>
@@ -211,7 +217,7 @@ export default function NewMatchPage() {
             {/* NIVEL DE PADEL (Condicional) */}
             {formData.sport === 'Pádel' && (
               <div className="animate-fade-in">
-                <label htmlFor="padel_level" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="padel_level" className="label-standard mb-2">
                   Nivel de Pádel <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -219,7 +225,7 @@ export default function NewMatchPage() {
                   value={formData.padel_level || ''}
                   onChange={(e) => setFormData({ ...formData, padel_level: e.target.value })}
                   disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="input-standard"
                   required
                 >
                   <option value="">Seleccioná el nivel</option>
@@ -238,7 +244,7 @@ export default function NewMatchPage() {
             {/* Fecha y Hora */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="date" className="label-standard mb-2">
                   Fecha <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -249,13 +255,13 @@ export default function NewMatchPage() {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="input-standard"
                   required
                 />
               </div>
               
               <div>
-                <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="time" className="label-standard mb-2">
                   Hora <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -263,7 +269,7 @@ export default function NewMatchPage() {
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   disabled={saving}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="input-standard"
                   required
                 >
                   <option value="">Hora</option>
@@ -276,7 +282,7 @@ export default function NewMatchPage() {
             
             {/* Zona */}
             <div>
-              <label htmlFor="zone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="zone" className="label-standard mb-2">
                 Zona <span className="text-red-500">*</span>
               </label>
               <select
@@ -284,7 +290,7 @@ export default function NewMatchPage() {
                 value={formData.zone}
                 onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="input-standard"
                 required
               >
                 <option value="">Seleccioná la zona</option>
@@ -298,7 +304,7 @@ export default function NewMatchPage() {
 
             {/* Lugar */}
             <div>
-              <label htmlFor="location_text" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="location_text" className="label-standard mb-2">
                 Lugar <span className="text-red-500">*</span>
               </label>
               <input
@@ -308,14 +314,14 @@ export default function NewMatchPage() {
                 onChange={(e) => setFormData({ ...formData, location_text: e.target.value })}
                 placeholder="Ej: Complejo Deportivo X, Cancha 3"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="input-standard"
                 required
               />
             </div>
 
             {/* Cupos */}
             <div>
-              <label htmlFor="total_slots" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="total_slots" className="label-standard mb-2">
                 Cupos totales <span className="text-red-500">*</span>
               </label>
               <input
@@ -326,14 +332,14 @@ export default function NewMatchPage() {
                 value={formData.total_slots}
                 onChange={(e) => setFormData({ ...formData, total_slots: Number(e.target.value) })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="input-standard"
                 required
               />
             </div>
 
             {/* Precio */}
             <div>
-              <label htmlFor="price_per_person" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="price_per_person" className="label-standard mb-2">
                 Precio por persona (opcional)
               </label>
               <input
@@ -359,7 +365,7 @@ export default function NewMatchPage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="btn-primary"
             >
               {saving ? 'Creando partido...' : 'Crear partido'}
             </button>

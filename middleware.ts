@@ -35,8 +35,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Routes that don't require profile completion
-  // Routes that don't require profile completion
-  const profileExemptRoutes = ['/login', '/profile', '/api/auth/callback', '/']
+  const profileExemptRoutes = ['/login', '/profile', '/api/auth/callback', '/', '/matches']
   const isProfileExempt = profileExemptRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )
@@ -44,8 +43,7 @@ export async function middleware(request: NextRequest) {
   const isMatchDetailRoute = /^\/matches\/[^\/]+$/.test(request.nextUrl.pathname)
 
   // Protected routes (require auth)
-  // Routes that require auth
-  const protectedRoutes = ['/profile', '/matches/new', '/players']
+  const protectedRoutes = ['/profile', '/matches/new', '/players', '/home']
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )

@@ -176,7 +176,7 @@ export default function ProfileClient() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Nombre */}
             <div>
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="first_name" className="label-standard mb-2">
                 Nombre <span className="text-red-500">*</span>
               </label>
               <input
@@ -186,14 +186,14 @@ export default function ProfileClient() {
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                 placeholder="Juan"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="input-standard transition disabled:bg-gray-100"
                 required
               />
             </div>
 
             {/* Apellido */}
             <div>
-              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="last_name" className="label-standard mb-2">
                 Apellido <span className="text-red-500">*</span>
               </label>
               <input
@@ -203,14 +203,14 @@ export default function ProfileClient() {
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                 placeholder="Pérez"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="input-standard transition disabled:bg-gray-100"
                 required
               />
             </div>
 
             {/* WhatsApp */}
             <div>
-              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="whatsapp" className="label-standard mb-2">
                 WhatsApp <span className="text-red-500">*</span>
               </label>
               <input
@@ -220,7 +220,7 @@ export default function ProfileClient() {
                 onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
                 placeholder="+598 99 123 456 o 099123456"
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="input-standard transition disabled:bg-gray-100"
                 required
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -230,7 +230,7 @@ export default function ProfileClient() {
 
             {/* Zona */}
             <div>
-              <label htmlFor="zone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="zone" className="label-standard mb-2">
                 Zona (opcional)
               </label>
               <select
@@ -238,7 +238,7 @@ export default function ProfileClient() {
                 value={formData.zone}
                 onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
                 disabled={saving}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                className="input-standard transition disabled:bg-gray-100"
               >
                 <option value="">Seleccioná tu zona</option>
                 {ZONES.map((zone) => (
@@ -369,7 +369,7 @@ export default function ProfileClient() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="btn-primary"
             >
               {saving ? 'Guardando...' : 'Guardar perfil'}
             </button>

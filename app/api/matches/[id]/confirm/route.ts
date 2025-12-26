@@ -32,7 +32,7 @@ export async function POST(
   }
 
   // Update confirmed_at
-  // @ts-expect-error - confirmed_at column will exist after running migration
+  // @ts-ignore - confirmed_at column exists after migration, types need regeneration
   const { error } = await supabase
     .from('match_players')
     .update({ confirmed_at: new Date().toISOString() })

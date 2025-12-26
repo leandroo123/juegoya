@@ -5,6 +5,8 @@ import MatchActions from './MatchActions'
 import ShareButton from './ShareButton'
 import DeleteMatchButton from './DeleteMatchButton'
 import ConfirmAttendanceButton from './ConfirmAttendanceButton'
+import CountdownTimer from './CountdownTimer'
+import ConfettiEffect from './ConfettiEffect'
 import BackHeader from '@/components/BackHeader'
 import Link from 'next/link'
 
@@ -99,6 +101,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
+      <ConfettiEffect isFull={isFull} totalSlots={totalSlots} />
       <BackHeader title={(match as any).sport} destination="/matches" />
       
       <div className="max-w-4xl mx-auto px-4 mt-6">
@@ -120,12 +123,18 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
                   minute: '2-digit',
                 })}
               </p>
+              <div className="mt-3">
+                <CountdownTimer startsAt={(match as any).starts_at} />
+              </div>
             </div>
             <div className="text-right">
               <div className="text-5xl font-bold text-blue-600">
                 {filledSlots}/{totalSlots}
               </div>
               <p className="text-sm text-gray-500">cupos</p>
+              {isFull && (
+                <p className="text-green-600 font-semibold text-sm mt-1">¡Completo! 🎉</p>
+              )}
             </div>
           </div>
 

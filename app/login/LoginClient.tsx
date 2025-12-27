@@ -98,7 +98,7 @@ export default function LoginClient() {
             text: '✅ Cuenta creada. Iniciá sesión para continuar.' 
           })
           setAuthMode('login')
-          setSaving(false)
+          setLoading(false)
           return
         }
 

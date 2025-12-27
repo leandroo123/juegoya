@@ -10,17 +10,6 @@ import { Database } from '@/lib/types'
 const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
 const PADEL_LEVELS = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']
 
-const ZONES = [
-  'Centro/Cordón',
-  'Pocitos',
-  'Punta Carretas',
-  'Carrasco',
-  'Malvín',
-  'Buceo',
-  'Parque Rodó',
-  'Otra',
-]
-
 // Horarios cada 30 min: 06:00 a 23:30
 const TIME_SLOTS: string[] = []
 for (let h = 6; h <= 23; h++) {
@@ -301,27 +290,6 @@ export default function NewMatchPage() {
               </div>
             </div>
             
-            {/* Zona */}
-            <div>
-              <label htmlFor="zone" className="label-standard mb-2">
-                Zona <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="zone"
-                value={formData.zone}
-                onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
-                disabled={saving}
-                className="input-standard"
-                required
-              >
-                <option value="">Seleccioná la zona</option>
-                {ZONES.map((zone) => (
-                  <option key={zone} value={zone}>
-                    {zone}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             {/* Lugar */}
             <div>

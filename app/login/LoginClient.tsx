@@ -44,6 +44,9 @@ export default function LoginClient() {
           password,
         })
         if (error) throw error
+        
+        // Force router to refresh server data before navigating
+        router.refresh()
         router.push(redirectPath)
       } else {
         // REGISTER FLOW
@@ -105,15 +108,23 @@ export default function LoginClient() {
           // Show success but ask to login manually
           setMessage({ 
             type: 'success', 
-            text: '✅ Cuenta creada. Iniciá sesión para continuar.' 
+            text: '✅ Cuenta creada exitosamente. Iniciá sesión para continuar.' 
           })
           setAuthMode('login')
           setLoading(false)
           return
         }
 
-        // Success - redirect immediately
-        router.push(redirectPath)
+        // Success - show message and redirect to matches
+        setMessage({ 
+          type: 'success', 
+          text: '✅ ¡Cuenta creada exitosamente! Redirigiendo...' 
+        })
+        
+        // Wait a moment to show the message, then redirect
+        setTimeout(() => {
+          router.push('/matches')
+        }, 1500)
       }
     } catch (err: unknown) {
       console.error(err)

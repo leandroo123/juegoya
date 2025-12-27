@@ -99,6 +99,21 @@ export default function NewMatchPage() {
       }
       const starts_at = `${date}T${time}:00`
 
+      // Validate: if same day, must be at least 2 hours in the future
+      const matchDateTime = new Date(starts_at)
+      const now = new Date()
+      const hoursUntilMatch = (matchDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+      
+      const isSameDay = matchDateTime.toDateString() === now.toDateString()
+      if (isSameDay && hoursUntilMatch < 2) {
+        setMessage({ 
+          type: 'error', 
+          text: 'Para partidos de hoy, el horario debe ser al menos 2 horas después de ahora' 
+        })
+        setSaving(false)
+        return
+      }
+
       // If sport is NOT Padel, ensure padel_level is null
       const finalPadelLevel = formData.sport === 'Pádel' ? formData.padel_level : null
 

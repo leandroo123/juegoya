@@ -10,7 +10,7 @@ const PADEL_CATEGORIES = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va'
 export default function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectPath = searchParams.get('redirect') || '/home'
+  const redirectPath = searchParams.get('redirect') || '/matches'
   const startType = searchParams.get('type') === 'register' ? 'register' : 'login'
   
   const supabase = createClient()
@@ -52,11 +52,12 @@ export default function LoginClient() {
           throw new Error('Si jugás Pádel, indicá tu categoría.')
         }
 
-        // 2. SignUp
+        // 2. SignUp with email confirmation disabled
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: undefined, // Disable email confirmation
             data: {
               first_name: firstName,
               last_name: lastName,
@@ -83,16 +84,26 @@ export default function LoginClient() {
           // Continue anyway, auth worked
         }
 
-        // Show success message
-        setMessage({ 
-          type: 'success', 
-          text: '✅ ¡Cuenta creada exitosamente! Ya podés usar la app.' 
+        // Auto-login after signup (no email confirmation needed)
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         })
-        
-        // Redirect after 1.5 seconds
-        setTimeout(() => {
-          router.push(redirectPath)
-        }, 1500)
+
+        if (loginError) {
+          console.error('Auto-login error:', loginError)
+          // Show success but ask to login manually
+          setMessage({ 
+            type: 'success', 
+            text: '✅ Cuenta creada. Iniciá sesión para continuar.' 
+          })
+          setAuthMode('login')
+          setSaving(false)
+          return
+        }
+
+        // Success - redirect immediately
+        router.push(redirectPath)
       }
     } catch (err: unknown) {
       console.error(err)

@@ -39,9 +39,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-3xl">⚡</span>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               JuegoYa
-            </h1>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
@@ -65,12 +65,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
 
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-5xl font-extrabold text-gray-900 mb-4 animate-fade-in">
-          Armá tu partido en minutos
-        </h2>
+        <h1 className="text-5xl font-extrabold text-gray-900 mb-4 animate-fade-in">
+          Organizá partidos deportivos en segundos
+        </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Encontrá jugadores cerca, sumate a juntadas públicas o privadas. 
-          <span className="text-blue-600 font-semibold"> ¡Llenamos la cancha sin vueltas!</span>
+          Creá partidos de fútbol, pádel y tenis en minutos. Encontrá jugadores cerca y coordiná todo en un solo lugar.
+          <span className="text-blue-600 font-semibold"> ¡Sin complicaciones!</span>
         </p>
       </div>
       

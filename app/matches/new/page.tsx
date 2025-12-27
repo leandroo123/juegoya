@@ -97,10 +97,13 @@ export default function NewMatchPage() {
         setSaving(false)
         return
       }
-      const starts_at = `${date}T${time}:00`
-
+      
+      // Create date in Uruguay timezone (UTC-3)
+      // Input format: date="2025-12-27" time="19:30"
+      const localDateTimeString = `${date}T${time}:00`
+      const matchDateTime = new Date(localDateTimeString)
+      
       // Validate: if same day, must be at least 2 hours in the future
-      const matchDateTime = new Date(starts_at)
       const now = new Date()
       const hoursUntilMatch = (matchDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
       
@@ -113,6 +116,9 @@ export default function NewMatchPage() {
         setSaving(false)
         return
       }
+      
+      // Convert to ISO string for Supabase (will be stored as UTC)
+      const starts_at = matchDateTime.toISOString()
 
       // If sport is NOT Padel, ensure padel_level is null
       const finalPadelLevel = formData.sport === 'Pádel' ? formData.padel_level : null

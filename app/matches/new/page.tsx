@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/browser'
 import { createMatchSchema } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import BackHeader from '@/components/BackHeader'
-import { Database } from '@/lib/types'
+// import { Database } from '@/lib/types' // Temporarily commented out due to types generation issue
 
 const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
 const PADEL_LEVELS = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']

@@ -10,7 +10,6 @@ const PADEL_CATEGORIES = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va'
 export default function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectPath = searchParams.get('redirect') || '/matches'
   const startType = searchParams.get('type') === 'register' ? 'register' : 'login'
   
   const supabase = createClient()
@@ -47,7 +46,7 @@ export default function LoginClient() {
         
         // Force router to refresh server data before navigating
         router.refresh()
-        router.push(redirectPath)
+        router.push('/matches')
       } else {
         // REGISTER FLOW
         // 1. Validate Profile Data First

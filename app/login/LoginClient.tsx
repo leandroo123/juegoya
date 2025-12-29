@@ -28,6 +28,7 @@ export default function LoginClient() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [gender, setGender] = useState('')
   const [selectedSports, setSelectedSports] = useState<string[]>([])
   const [padelLevel, setPadelLevel] = useState('')
 
@@ -50,8 +51,8 @@ export default function LoginClient() {
       } else {
         // REGISTER FLOW
         // 1. Validate Profile Data First
-        if (!firstName || !lastName || !whatsapp) {
-          throw new Error('Completá nombre, apellido y WhatsApp.')
+        if (!firstName || !lastName || !whatsapp || !gender) {
+          throw new Error('Completá nombre, apellido, WhatsApp y género.')
         }
         if (selectedSports.includes('Pádel') && !padelLevel) {
           throw new Error('Si jugás Pádel, indicá tu categoría.')
@@ -86,6 +87,7 @@ export default function LoginClient() {
           first_name: firstName,
           last_name: lastName,
           whatsapp,
+          gender,
           sports: selectedSports,
           padel_category: selectedSports.includes('Pádel') ? padelLevel : null,
           updated_at: new Date().toISOString()
@@ -273,6 +275,21 @@ export default function LoginClient() {
                   required
                   className="input-standard"
                 />
+              </div>
+
+              <div>
+                <label className="label-standard">Género *</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  required
+                  className="input-standard"
+                >
+                  <option value="">Seleccioná tu género</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Otro">Otro</option>
+                </select>
               </div>
 
               <div>

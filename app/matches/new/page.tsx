@@ -137,8 +137,8 @@ export default function NewMatchPage() {
         return
       }
 
-      // Explicitly typed insert to satisfy Supabase strict typings
-      const newMatch: Database['public']['Tables']['matches']['Insert'] = {
+      // Create match object for insert
+      const newMatch = {
         organizer_id: user.id,
         sport: result.data.sport,
         starts_at: result.data.starts_at,

@@ -10,7 +10,7 @@ export const profileSchema = z.object({
     .regex(/^[\+\d\s\-()]+$/, 'Solo números, espacios, guiones o paréntesis')
     .transform((val) => val.replace(/\D/g, '')) // Remove ALL non-numeric characters including +
     .refine((val) => val.length >= 9 && val.length <= 15, 'Debe tener entre 9 y 15 dígitos'),
-  zone: z.string().max(100).optional().nullable(),
+  gender: z.string().min(1, 'El género es obligatorio').max(50),
   level: z.number().int().min(1).max(5).optional().nullable(), // Fútbol 5 default
   sports: z.array(z.string()).optional().nullable(),
   padel_category: z.string().optional().nullable(),

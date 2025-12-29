@@ -141,7 +141,7 @@ export default function NewMatchPage() {
         organizer_id: user.id,
         sport: result.data.sport,
         starts_at: result.data.starts_at,
-        zone: null as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Zone field removed from form, set to null (field should be nullable in DB)
+        zone: '', // Zone field removed from form, use empty string instead of null
         location_text: result.data.location_text,
         total_slots: result.data.total_slots,
         price_per_person: result.data.price_per_person || null,

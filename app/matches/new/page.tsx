@@ -9,6 +9,24 @@ import BackHeader from '@/components/BackHeader'
 
 const SPORTS = ['Fútbol 5', 'Pádel', 'Tenis']
 const PADEL_LEVELS = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va']
+const ZONES = [
+  'Centro/Cordón',
+  'Pocitos',
+  'Punta Carretas',
+  'Parque Rodó',
+  'Malvín',
+  'Carrasco',
+  'Ciudad Vieja',
+  'Palermo',
+  'Tres Cruces',
+  'La Blanqueada',
+  'Buceo',
+  'Punta Gorda',
+  'Aguada',
+  'Reducto',
+  'Parque Batlle',
+  'Otra'
+]
 
 // Horarios cada 30 min: 06:00 a 23:30
 const TIME_SLOTS: string[] = []
@@ -142,7 +160,7 @@ export default function NewMatchPage() {
         organizer_id: user.id,
         sport: result.data.sport,
         starts_at: result.data.starts_at,
-        zone: '', // Zone field removed from form, use empty string instead of null
+        zone: formData.zone,
         location_text: result.data.location_text,
         total_slots: result.data.total_slots,
         price_per_person: result.data.price_per_person || null,
@@ -333,6 +351,28 @@ export default function NewMatchPage() {
                 className="input-standard"
                 required
               />
+            </div>
+
+            {/* Zona */}
+            <div>
+              <label htmlFor="zone" className="label-standard mb-2">
+                Zona <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="zone"
+                value={formData.zone}
+                onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+                disabled={saving}
+                className="input-standard"
+                required
+              >
+                <option value="">Seleccioná la zona</option>
+                {ZONES.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Cupos */}

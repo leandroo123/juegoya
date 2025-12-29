@@ -147,7 +147,7 @@ export default function NewMatchPage() {
         total_slots: result.data.total_slots,
         price_per_person: result.data.price_per_person || null,
         padel_level: result.data.padel_level || null,
-        // match_type: (result.data.match_type || null) as any, // TODO: Uncomment after running migration 003
+        match_type: (result.data.match_type || null) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         status: 'open',
       }
 

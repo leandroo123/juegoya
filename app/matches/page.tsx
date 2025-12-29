@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import type { Match, MatchPlayer, Profile } from '@/lib/types'
+// import type { Match, MatchPlayer, Profile } from '@/lib/types' // Temporarily commented
 import MatchesClient from './MatchesClient'
 
 type MatchWithDetails = Match & {

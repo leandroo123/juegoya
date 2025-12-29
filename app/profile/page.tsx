@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BackHeader from '@/components/BackHeader'
-import { Profile } from '@/lib/types'
+// import { Profile } from '@/lib/types' // Temporarily commented
 
 export default async function ProfilePage() {
   const supabase = await createClient()

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { Match, MatchPlayer, Profile } from '@/lib/types'
+// import type { Match, MatchPlayer, Profile } from '@/lib/types' // Temporarily commented
 import SportFilter from './SportFilter'
 
 type MatchWithDetails = Match & {

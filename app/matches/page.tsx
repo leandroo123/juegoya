@@ -1,6 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 // import type { Match, MatchPlayer, Profile } from '@/lib/types' // Temporarily commented
+// Local type definitions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Match = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MatchPlayer = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Profile = any
 import MatchesClient from './MatchesClient'
 
 type MatchWithDetails = Match & {

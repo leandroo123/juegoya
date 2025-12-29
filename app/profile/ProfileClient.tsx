@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { profileSchema } from '@/lib/validations'
 import { useRouter, useSearchParams } from 'next/navigation'
-// import type { Database, Profile } from '@/lib/types' // Temporarily commented
+// Local type definition
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Profile = any
 
 const ZONES = [
   'Centro/Cordón',

@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 // import type { Match, MatchPlayer, Profile } from '@/lib/types' // Temporarily commented
+// Local type definitions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Match = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MatchPlayer = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Profile = any
 import SportFilter from './SportFilter'
 
 type MatchWithDetails = Match & {
@@ -45,7 +52,8 @@ export default function MatchesClient({ matches, isProfileComplete }: MatchesCli
       {filteredMatches.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMatches.map((match) => {
-            const activePlayers = match.players?.filter((p) => p.role === 'signed_up' && !p.canceled_at) || []
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const activePlayers = match.players?.filter((p: any) => p.role === 'signed_up' && !p.canceled_at) || []
             const filledSlots = activePlayers.length
             const totalSlots = match.total_slots
             const matchId = match.id

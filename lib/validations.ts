@@ -71,7 +71,7 @@ export const createMatchSchema = z.object({
 
     return true
   }, 'La fecha debe ser futura (máx 21 días) y en horarios redondos (:00 o :30)'),
-  zone: z.string().min(1, 'La zona es obligatoria').max(100),
+  zone: z.string().optional().nullable(), // Zone field is no longer required
   location_text: z.string().min(1, 'La ubicación es obligatoria').max(200),
   total_slots: z.number().int().min(1, 'Debe haber al menos 1 cupo').max(100, 'Máximo 100 cupos'),
   price_per_person: z.number().nonnegative().optional(),

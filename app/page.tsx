@@ -32,7 +32,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 pt-12 pb-6 text-center">
+      <div className="max-w-6xl mx-auto px-4 pt-12 pb-2 text-center">
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4 animate-fade-in">
           Organizá partidos deportivos en segundos
         </h1>

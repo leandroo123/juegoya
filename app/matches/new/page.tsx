@@ -253,6 +253,31 @@ export default function NewMatchPage() {
               </div>
             )}
 
+            {/* Tipo de Partido - Required for Pádel */}
+            {formData.sport === 'Pádel' && (
+              <div className="animate-fade-in">
+                <label htmlFor="match_type" className="label-standard mb-2">
+                  Tipo de Partido <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="match_type"
+                  value={formData.match_type || ''}
+                  onChange={(e) => setFormData({ ...formData, match_type: e.target.value })}
+                  disabled={saving}
+                  className="input-standard"
+                  required
+                >
+                  <option value="">Seleccioná el tipo</option>
+                  <option value="Solo Mujeres">Solo Mujeres</option>
+                  <option value="Solo Hombres">Solo Hombres</option>
+                  <option value="Mixto">Mixto</option>
+                </select>
+                <p className="text-xs text-blue-600 mt-1">
+                  Obligatorio para partidos de Pádel.
+                </p>
+              </div>
+            )}
+
             {/* Fecha y Hora */}
             <div className="grid grid-cols-2 gap-4">
               <div>

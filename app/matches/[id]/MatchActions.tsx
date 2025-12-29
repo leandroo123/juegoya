@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/browser'
-import type { Database, Profile } from '@/lib/types'
+// import type { Database, Profile } from '@/lib/types' // Temporarily commented due to types generation issue
 
 interface MatchActionsProps {
   matchId: string

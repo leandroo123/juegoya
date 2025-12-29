@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import HowItWorks from '@/components/HowItWorks'
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const supabase = await createClient()
@@ -40,6 +41,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
           <span className="text-blue-600 font-semibold"> ¡Sin complicaciones!</span>
         </p>
       </div>
+
+      {/* How It Works Section */}
+      <HowItWorks />
       
       <div className="max-w-6xl mx-auto px-4 pb-12">
         
@@ -94,13 +98,30 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
               const filledSlots = activePlayers.length
               const totalSlots = match.total_slots
               const isFull = filledSlots >= totalSlots
+              
+              // Check if match is today
+              const matchDate = new Date(match.starts_at)
+              const today = new Date()
+              const isToday = matchDate.toDateString() === today.toDateString()
 
               return (
                 <Link
                   key={match.id}
                   href={`/matches/${match.id}`}
-                  className="group block bg-white rounded-2xl shadow-md hover:shadow-2xl border border-gray-100 p-6 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02]"
+                  className="group block bg-white rounded-2xl shadow-md hover:shadow-2xl border border-gray-100 p-6 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] relative overflow-hidden"
                 >
+                  {/* Status Badges */}
+                  {isFull && (
+                    <div className="absolute top-4 right-4 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10">
+                      COMPLETO
+                    </div>
+                  )}
+                  {isToday && !isFull && (
+                    <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10 animate-pulse">
+                      HOY
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -160,9 +181,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500">
-                      Organiza: <span className="font-semibold text-gray-700">{match.organizer?.first_name} {match.organizer?.last_name}</span>
-                    </p>
+                    {match.organizer?.first_name ? (
+                      <p className="text-xs text-gray-500">
+                        Organiza: <span className="font-semibold text-gray-700">{match.organizer.first_name} {match.organizer.last_name}</span>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        <span className="font-semibold text-blue-600">Partido público</span>
+                      </p>
+                    )}
                   </div>
                 </Link>
               )
@@ -170,8 +197,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-100">
-            <div className="text-6xl mb-4">🏟️</div>
-            <p className="text-gray-600 text-lg mb-6">No hay partidos disponibles en este momento</p>
+            <div className="text-6xl mb-4">⚽🎾🏸</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">No hay partidos disponibles</h3>
+            <p className="text-gray-600 text-lg mb-6">¡Sé el primero en crear uno!</p>
             <Link
               href="/matches/new"
               className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105"

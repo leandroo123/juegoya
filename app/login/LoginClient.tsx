@@ -149,14 +149,21 @@ export default function LoginClient() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {authMode === 'login' ? '¡Hola de nuevo!' : 'Crear cuenta'}
-        </h1>
-        <p className="text-gray-600 mb-6">
-          {authMode === 'login' 
-            ? 'Ingresá para anotarte a los partidos.' 
-            : 'Unite a la comunidad de JuegoYa.'}
-        </p>
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {authMode === 'login' ? 'Ingresá a JuegoYa' : 'Unite a JuegoYa'}
+          </h1>
+          <p className="text-gray-600">
+            {authMode === 'login' 
+              ? 'Anotate a partidos y organizá tus juegos.' 
+              : 'Creá tu cuenta y empezá a jugar.'}
+          </p>
+          {authMode === 'login' && (
+            <p className="text-sm text-gray-500 mt-2">
+              🔒 Tus datos están seguros
+            </p>
+          )}
+        </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           

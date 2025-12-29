@@ -38,7 +38,8 @@ export default function NewMatchPage() {
     location_text: '',
     total_slots: 10,
     price_per_person: undefined as number | undefined,
-    padel_level: undefined as string | undefined, // New field
+    padel_level: undefined as string | undefined,
+    match_type: undefined as string | undefined, // New field for match type
   })
 
   // Date limits
@@ -146,6 +147,7 @@ export default function NewMatchPage() {
         total_slots: result.data.total_slots,
         price_per_person: result.data.price_per_person || null,
         padel_level: result.data.padel_level || null,
+        // match_type: (result.data.match_type || null) as any, // TODO: Uncomment after running migration 003
         status: 'open',
       }
 

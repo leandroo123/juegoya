@@ -76,12 +76,22 @@ export const createMatchSchema = z.object({
   total_slots: z.number().int().min(1, 'Debe haber al menos 1 cupo').max(100, 'Máximo 100 cupos'),
   price_per_person: z.number().nonnegative().optional(),
   padel_level: z.string().optional().nullable(),
+  match_type: z.enum(['Solo Mujeres', 'Solo Hombres', 'Mixto']).optional().nullable(),
 }).superRefine((data, ctx) => {
   if (data.sport === 'Pádel' && !data.padel_level) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'El nivel de pádel es obligatorio para partidos de Pádel',
       path: ['padel_level'],
+    })
+  }
+  
+  // Validate match_type is required for Pádel
+  if (data.sport === 'Pádel' && !data.match_type) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'El tipo de partido es obligatorio para partidos de Pádel',
+      path: ['match_type'],
     })
   }
 })

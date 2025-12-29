@@ -36,7 +36,7 @@ export default function ProfileClient() {
     first_name: '',
     last_name: '',
     whatsapp: '',
-    zone: '',
+    gender: '',
     level: undefined as number | undefined, // Futbol 5
     sports: [] as string[],
     padel_category: '',
@@ -68,7 +68,7 @@ export default function ProfileClient() {
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
           whatsapp: profile.whatsapp || '',
-          zone: profile.zone || '',
+          gender: profile.gender || '',
           level: profile.level || undefined,
           sports: profile.sports || [],
           padel_category: profile.padel_category || '',
@@ -122,7 +122,7 @@ export default function ProfileClient() {
         first_name: result.data.first_name,
         last_name: result.data.last_name,
         whatsapp: result.data.whatsapp,
-        zone: result.data.zone || null,
+        gender: result.data.gender || null,
         level: result.data.level || null,
         sports: result.data.sports || null,
         padel_category: result.data.padel_category || null,
@@ -230,24 +230,23 @@ export default function ProfileClient() {
               </p>
             </div>
 
-            {/* Zona */}
+            {/* Género */}
             <div>
-              <label htmlFor="zone" className="label-standard mb-2">
-                Zona (opcional)
+              <label htmlFor="gender" className="label-standard mb-2">
+                Género <span className="text-red-500">*</span>
               </label>
               <select
-                id="zone"
-                value={formData.zone}
-                onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+                id="gender"
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                 disabled={saving}
                 className="input-standard transition disabled:bg-gray-100"
+                required
               >
-                <option value="">Seleccioná tu zona</option>
-                {ZONES.map((zone) => (
-                  <option key={zone} value={zone}>
-                    {zone}
-                  </option>
-                ))}
+                <option value="">Seleccioná tu género</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
               </select>
             </div>
 

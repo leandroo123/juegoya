@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const supabase = await createClient()
   const params = await searchParams
-  
-  // Basic Auth Check (Passive)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   // Fetch upcoming open matches
   let query = supabase
@@ -36,35 +30,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Navbar with glassmorphism */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="JuegoYa" width={32} height={32} className="w-8 h-8" />
-            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              JuegoYa
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <Link href="/profile" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                Mi Perfil
-              </Link>
-            ) : (
-              <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                Ingresar
-              </Link>
-            )}
-            <Link
-              href="/matches/new"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              + Crear Partido
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 py-12 text-center">
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4 animate-fade-in">

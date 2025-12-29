@@ -11,6 +11,7 @@ export const profileSchema = z.object({
     .transform((val) => val.replace(/\D/g, '')) // Remove ALL non-numeric characters including +
     .refine((val) => val.length >= 9 && val.length <= 15, 'Debe tener entre 9 y 15 dígitos'),
   gender: z.string().min(1, 'El género es obligatorio').max(50),
+  zone: z.string().optional().nullable(), // User's preferred zone/area
   level: z.number().int().min(1).max(5).optional().nullable(), // Fútbol 5 default
   sports: z.array(z.string()).optional().nullable(),
   padel_category: z.string().optional().nullable(),

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BackHeader from '@/components/BackHeader'
-// Local type definition
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Profile = any
 
@@ -16,23 +16,22 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-// ...
-
-  const { data: profileData } = await supabase
+  const { data: profileData, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
+    .maybeSingle()
+
+  if (error) {
+    redirect('/profile/edit')
+  }
+
   const profile = profileData as Profile | null
 
   if (!profile) {
-    // Should not happen ideally if auth worked, but defensive
     redirect('/profile/edit')
   }
-  
-  // Helper to format sports list (unused currently, keeping for reference if needed or removing to clear lint)
-  // const sportsList = profile.sports && profile.sports.length > 0 ...
-  // Removing it to satisfy "no error" request strictly.
-  
+
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
       <BackHeader title="Mi Perfil" destination="/home" />
@@ -50,12 +49,19 @@ export default async function ProfilePage() {
               <p className="text-gray-500">{user.email}</p>
             </div>
           </div>
+
           <div className="space-y-6 border-t border-gray-100 pt-6">
             <div>
               <p className="text-sm font-medium text-gray-500 mb-1">WhatsApp</p>
               <p className="text-gray-900 text-lg">{profile.whatsapp || '-'}</p>
             </div>
-            
+
+            {/* ✅ ACÁ AGREGADO: GÉNERO */}
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">Género</p>
+              <p className="text-gray-900 text-lg">{profile.gender || '-'}</p>
+            </div>
+
             <div>
               <p className="text-sm font-medium text-gray-500 mb-1">Zona</p>
               <p className="text-gray-900 text-lg">{profile.zone || '-'}</p>
@@ -65,7 +71,10 @@ export default async function ProfilePage() {
               <p className="text-sm font-medium text-gray-500 mb-1">Deportes</p>
               <div className="flex flex-wrap gap-2 mt-2">
                 {profile.sports?.map((sport: string) => (
-                  <span key={sport} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                  <span
+                    key={sport}
+                    className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
+                  >
                     {sport}
                   </span>
                 ))}
@@ -81,13 +90,15 @@ export default async function ProfilePage() {
                 <p className="text-gray-900 text-lg">{profile.padel_category || '-'}</p>
               </div>
             )}
-             {profile.sports?.includes('Tenis') && (
+
+            {profile.sports?.includes('Tenis') && (
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Nivel de Tenis</p>
                 <p className="text-gray-900 text-lg">{profile.tennis_level || '-'}</p>
               </div>
             )}
-             {profile.sports?.includes('Fútbol 5') && (
+
+            {profile.sports?.includes('Fútbol 5') && (
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Nivel de Fútbol 5</p>
                 <p className="text-gray-900 text-lg">{profile.level || '-'}</p>
@@ -96,7 +107,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <Link 
+            <Link
               href="/profile/edit"
               className="block w-full bg-white border-2 border-blue-600 text-blue-600 font-bold text-center py-3 rounded-xl hover:bg-blue-50 transition"
             >
